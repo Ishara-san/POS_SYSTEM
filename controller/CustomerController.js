@@ -1,194 +1,268 @@
-import {customers_db} from "../db/db.js";
-import { CustomerModel } from '../model/CustomerModel.js';
+import {customer_db, item_db} from "../db/db.js";
+import CustomerModel from "../model/customerModel.js";
+import { updateDashboard } from "./dashboardController.js";
 
-export class CustomerController {
-    constructor() {
-        this.currentCustomerId = 1;
-    }
+let namePattern =/^[A-Za-z\s]{3,40}$/
+let addressPattern =/^[a-zA-Z0-9\s,.'-]{5,100}$/
+let contactPattern = /^0\d{9}$/;
+let emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-    async loadView() {
-        try {
-            const response = await fetch('../views/customer.html');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const html = await response.text();
-            document.getElementById('main-content').innerHTML = html;
-            await this.loadCustomers();
-            this.setupEventListeners();
-        } catch (error) {
-            console.error('Error loading customer view:', error);
-            alert('Error loading customer view. Please try again.');
+$(document).ready(function () {
+    clear();
+});
+
+$("#search-customer").on("input",function () {
+    let text = $(this).val()
+
+    $("#table-customer tr").each(function () {
+        let search = $(this).text()
+
+        if (search.includes(text)){
+            $(this).show()
+        }else {
+            $(this).hide()
         }
-    }
+    })
+})
 
-    setupEventListeners() {
-        const buttons = ['customer-save', 'customer-update', 'customer-delete', 'customer-reset'];
-        buttons.forEach(id => {
-            const button = document.getElementById(id);
-            if (button) {
-                const newButton = button.cloneNode(true);
-                button.parentNode.replaceChild(newButton, button);
-            }
-        });
-
-        document.getElementById('customer-save')?.addEventListener('click', () => this.saveCustomer());
-        document.getElementById('customer-update')?.addEventListener('click', () => this.updateCustomer());
-        document.getElementById('customer-delete')?.addEventListener('click', () => this.deleteCustomer());
-        document.getElementById('customer-reset')?.addEventListener('click', () => this.resetForm());
-
-        const tbody = document.getElementById('customer-tbody');
-        if (tbody) {
-            tbody.addEventListener('click', (e) => {
-                const row = e.target.closest('tr');
-                if (row) {
-                    const id = row.cells[0].textContent;
-                    const customer = customers_db.find(c => c.id.toString() === id);
-                    if (customer) {
-                        this.selectCustomer(customer);
-                    }
-                }
-            });
-        }
-    }
-
-    async saveCustomer() {
-        try {
-            const name = document.getElementById('name').value;
-            const address = document.getElementById('address').value;
-            const nic = document.getElementById('nic').value;
-            const mobile = document.getElementById('mobile').value;
-            const email = document.getElementById('email').value;
-
-            if (!name || !address || !nic || !mobile || !email) {
-                alert('Please fill in all fields');
-                return;
-            }
-
-            const customer = new CustomerModel(
-                this.currentCustomerId,
-                name,
-                address,
-                nic,
-                mobile,
-                email
-            );
-
-            customers_db.push(customer);
-            this.currentCustomerId++;
-            await this.loadCustomers();
-            this.resetForm();
-            alert('Customer saved successfully!');
-        } catch (error) {
-            console.error('Error saving customer:', error);
-            alert('Error saving customer. Please try again.');
-        }
-    }
-
-    async updateCustomer() {
-        try {
-            const id = parseInt(document.getElementById('customerId').textContent);
-            if (!id) {
-                alert('Please select a customer to update');
-                return;
-            }
-
-            const index = customers_db.findIndex(c => c.id === id);
-            if (index === -1) {
-                alert('Customer not found');
-                return;
-            }
-
-            const customer = new CustomerModel(
-                id,
-                document.getElementById('name').value,
-                document.getElementById('address').value,
-                document.getElementById('nic').value,
-                document.getElementById('mobile').value,
-                document.getElementById('email').value
-            );
-
-            customers_db[index] = customer;
-            await this.loadCustomers();
-            this.resetForm();
-            alert('Customer updated successfully!');
-        } catch (error) {
-            console.error('Error updating customer:', error);
-            alert('Error updating customer. Please try again.');
-        }
-    }
-
-    async deleteCustomer() {
-        try {
-            const id = parseInt(document.getElementById('customerId').textContent);
-            if (!id) {
-                alert('Please select a customer to delete');
-                return;
-            }
-
-            const index = customers_db.findIndex(c => c.id === id);
-            if (index === -1) {
-                alert('Customer not found');
-                return;
-            }
-
-            if (confirm('Are you sure you want to delete this customer?')) {
-                customers_db.splice(index, 1);
-                await this.loadCustomers();
-                this.resetForm();
-                alert('Customer deleted successfully!');
-            }
-        } catch (error) {
-            console.error('Error deleting customer:', error);
-            alert('Error deleting customer. Please try again.');
-        }
-    }
-
-    async loadCustomers() {
-        try {
-            const tbody = document.getElementById('customer-tbody');
-            if (!tbody) return;
-
-            tbody.innerHTML = '';
-            customers_db.forEach(customer => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${customer.id}</td>
-                    <td>${customer.name}</td>
-                    <td>${customer.address}</td>
-                    <td>${customer.nic}</td>
-                    <td>${customer.mobile}</td>
-                    <td>${customer.email}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        } catch (error) {
-            console.error('Error loading customers:', error);
-            alert('Error loading customers. Please try again.');
-        }
-    }
-
-    selectCustomer(customer) {
-        document.getElementById('customerId').textContent = customer.id;
-        document.getElementById('name').value = customer.name;
-        document.getElementById('address').value = customer.address;
-        document.getElementById('nic').value = customer.nic;
-        document.getElementById('mobile').value = customer.mobile;
-        document.getElementById('email').value = customer.email;
-    }
-
-    resetForm() {
-        document.getElementById('customerId').textContent = '';
-        document.getElementById('name').value = '';
-        document.getElementById('address').value = '';
-        document.getElementById('nic').value = '';
-        document.getElementById('mobile').value = '';
-        document.getElementById('email').value = '';
-    }
-
-    async getTotalCustomers() {
-        return customers_db.length;
-    }
+export function loadCustomer() {
+    $("#customer-tbody").empty();
+    customer_db.map((item) => {
+        let data = `<tr>
+            <td>${item.cusId}</td>
+            <td>${item.cusName}</td>
+            <td>${item.address}</td>
+            <td>${item.contact}</td>
+            <td>${item.email}</td>         
+        </tr>`;
+        $("#customer-tbody").append(data);
+    });
 }
 
+function nextId() {
+    if (customer_db.length === 0) return "CUS001";
+    let lastId = customer_db[customer_db.length - 1].cusId;
+    let numberPart = Number(lastId.slice(3));
+    let nextNumber = numberPart + 1;
+    let formatted = String(nextNumber).padStart(3, '0');
+    return "CUS" + formatted;
+}
 
+export function clear() {
+    $("#cusId").val(nextId());
+    $('#cusName').val('');
+    $('#address').val('');
+    $('#contact').val('');
+    $('#email').val('');
+}
+
+function loadCustomerIds() {
+    console.log('Loading customer IDs...');
+    $('#customer-dropdown').empty();
+    $('#customer-dropdown').append($('<option>', {
+        value: '',
+        text: 'Select Customer ID'
+    }));
+    console.log(customer_db);
+    customer_db.forEach(customer => {
+        $('#customer-dropdown').append(
+            $('<option>', {
+                value: customer.cusId,
+                text: customer.cusId
+            })
+        );
+    });
+}
+
+$("#customer-save").click(function () {
+    let cusId = nextId();
+    let cusName = $("#cusName").val()
+    let address = $("#address").val()
+    let contact = $("#contact").val()
+    let email = $("#email").val();
+
+    if (!contactPattern.test(contact)) {
+        Swal.fire({
+            title: "Error!",
+            text: "Invalid contact format",
+            icon: "error",
+            confirmButtonText: "Ok"
+        });
+        return;
+    }
+
+    if (!addressPattern.test(address)) {
+        Swal.fire({
+            title: "Error!",
+            text: "Invalid address format",
+            icon: "error",
+            confirmButtonText: "Ok"
+        });
+        return;
+    }
+
+    if (!namePattern.test(cusName)) {
+        Swal.fire({
+            title: "Error!",
+            text: "Invalid name format",
+            icon: "error",
+            confirmButtonText: "Ok"
+        });
+        return;
+    }
+
+    if (!emailPattern.test(email)) {
+        Swal.fire({
+            title: "Error!",
+            text: "Invalid email format",
+            icon: "error",
+            confirmButtonText: "Ok"
+        });
+        return;
+    }
+
+    if (cusName === '' || email === '' || contact === '' || address === '') {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Invalid Inputs',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    let customer_data = new CustomerModel(cusId, cusName, email, contact, address);
+    customer_db.push(customer_data);
+    loadCustomerIds()
+    loadCustomer();
+
+    Swal.fire({
+        title: "Added Successfully!",
+        icon: "success"
+    });
+    clear();
+    updateDashboard();
+});
+
+$('#customer-reset').on('click', function () {
+    clear();
+    loadCustomer();
+    nextId();
+});
+
+$('#customer-delete').on('click', function () {
+    let cusId = $('#cusId').val()
+    let cusName = $('#cusName').val()
+    let address = $('#address').val()
+    let contact = $('#contact').val()
+    let email = $('#email').val()
+
+    if (cusName === '' || email === '' || contact === '' || address === '') {
+        Swal.fire({
+            title: "Error",
+            text: "Select customer",
+            icon: "error"
+        });
+        return;
+    }
+
+    let index = customer_db.findIndex(customer => customer.cusId == Number(cusId));
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'This customer will be removed!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!'
+    }).then(result => {
+        if (result.isConfirmed) {
+            customer_db.splice(index, 1);
+            loadCustomer();
+            updateDashboard();
+            clear();
+            loadCustomerIds()
+        }
+    });
+});
+
+$('#customer-update').on('click', function () {
+    let cusId = $('#cusId').val()
+    let cusName = $('#cusName').val();
+    let address = $('#address').val()
+    let contact = $('#contact').val();
+    let email = $('#email').val();
+
+    if (!contactPattern.test(contact)) {
+        Swal.fire({
+            title: "Error!",
+            text: "Invalid contact format",
+            icon: "error",
+            confirmButtonText: "Ok"
+        });
+        return;
+    }
+
+    if (!addressPattern.test(address)) {
+        Swal.fire({
+            title: "Error!",
+            text: "Invalid address format",
+            icon: "error",
+            confirmButtonText: "Ok"
+        });
+        return;
+    }
+
+    if (!namePattern.test(cusName)) {
+        Swal.fire({
+            title: "Error!",
+            text: "Invalid name format",
+            icon: "error",
+            confirmButtonText: "Ok"
+        });
+        return;
+    }
+
+    if (!emailPattern.test(email)) {
+        Swal.fire({
+            title: "Error!",
+            text: "Invalid email format",
+            icon: "error",
+            confirmButtonText: "Ok"
+        });
+        return;
+    }
+
+    if (cusId === '' || cusName === '' || email === '' || contact === '' || address === '') {
+        Swal.fire({
+            title: "Error",
+            text: "Fill the fields first",
+            icon: "error"
+        });
+        return
+    }
+
+    let index = customer_db.findIndex(customer => customer.cusId == Number(cusId));
+
+    customer_db[index] = new CustomerModel(cusId, cusName, email, contact, address);
+
+    loadCustomer();
+
+    Swal.fire({
+        title: "Updated!",
+        text: "Customer Updated Successfully!",
+        icon: "success"
+    });
+    updateDashboard();
+    clear();
+});
+
+$("#customer-tbody").on('click', 'tr', function () {
+    let index = $(this).index();
+    let customer = customer_db[index];
+
+    $('#cusId').val(customer.cusId);
+    $('#cusName').val(customer.cusName);
+    $('#address').val(customer.address);
+    $('#contact').val(customer.contact);
+    $('#email').val(customer.email);
+});

@@ -1,8 +1,9 @@
-export class OrderModel {
-    constructor(id, customerId, items, date) {
-        this.id = id;
+export class orderModel {
+    constructor(orderId, customerId, date, items, totalAmount) {
+        this.orderId = orderId;
         this.customerId = customerId;
-        this.items = items;
         this.date = date;
+        this.items = items;
+        this.totalAmount = totalAmount;
     }
 }

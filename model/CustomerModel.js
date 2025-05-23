@@ -1,10 +1,9 @@
-export class CustomerModel {
-    constructor(id, name, address, nic, mobile, email) {
-        this.id = id;
-        this.name = name;
-        this.address = address;
-        this.nic = nic;
-        this.mobile = mobile;
+export default class customerModel {
+    constructor(cusId, cusName, email, contact, address) {
+        this.cusId = cusId;
+        this.cusName = cusName;
         this.email = email;
+        this.contact = contact;
+        this.address = address;
     }
 }

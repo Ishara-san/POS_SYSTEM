@@ -1,56 +1,390 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>POS</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./public/css/style.css" />
-  </head>
-  <body class="bg-light">
-    <div class="d-flex">
-      <!-- Sidebar -->
-      <div class="sidebar bg-dark text-white" style="width: 250px; min-height: 100vh;">
-        <div class="p-3">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">POS</h4>
-            <button class="btn btn-outline-light d-md-none" id="sidebar-close">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-          <div class="nav flex-column">
-            <button class="btn btn-outline-light text-start mb-2 w-100" id="nav-customer">
-              <i class="bi bi-person-lines-fill me-2"></i> Customer
-            </button>
-            <button class="btn btn-outline-light text-start mb-2 w-100" id="nav-item">
-              <i class="bi bi-box-seam me-2"></i> Items
-            </button>
-            <button class="btn btn-outline-light text-start mb-2 w-100" id="nav-order">
-              <i class="bi bi-cart-check-fill me-2"></i> Place Order
-            </button>
-          </div>
-        </div>
-      </div>
+<head>
+    <meta charset="UTF-8">
+    <title>My Web Pos Sys</title>
 
-      <!-- Main Content -->
-      <div class="flex-grow-1">
-        <div class="d-md-none p-3">
-          <button class="btn btn-primary" id="sidebar-toggle">
-            <i class="bi bi-list"></i> Menu
-          </button>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-1 text-white" href="#">
+            <span class="text-white"></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+            <ul class="navbar-nav gap-4">
+                <li class="nav-item">
+                    <a class="nav-link active text-white" id="home-nav" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" id="customer-nav" href="#">Customer</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" id="product-nav" href="#">Item</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" id="order-nav" href="#">Order</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" id="history-nav" href="#">Order History</a>
+                </li>
+            </ul>
         </div>
-        <div id="main-content" class="container-fluid p-4"></div>
-      </div>
     </div>
+</nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="./public/js/app.js" type="module"></script>
-  </body>
+<section id="dashboard-content" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Welcome to the PosSystem</h2>
+<!--            <p> A place for all your shopping needs.</p>-->
+        </div>
+        <img src="assets/images/img.png" alt="background" width=750px height=550px style="display: block;
+            margin-left: auto;
+  margin-right: auto;">
+    </div>
+</section>
+
+
+<section id="customer-content" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Manage Customers</h2>
+        </div>
+
+        <div class="card border-0 shadow-lg p-4 mb-4">
+            <h4 class="mb-4 text-dark">Customer Form</h4>
+            <form class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Customer Id" id="cusId" readonly>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Customer Name" id="cusName">
+                </div>
+                <div class="col-md-12">
+                    <input type="text" class="form-control" placeholder="Address" id="address">
+                </div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Contact" id="contact">
+                </div>
+                <div class="col-md-6">
+                    <input type="email" class="form-control" placeholder="Email" id="email">
+                </div>
+                <div class="col-12">
+                    <div class="d-flex justify-content-end gap-2 flex-wrap flex-md-nowrap">
+                        <button type="button" class="btn btn-success px-4 py-2" id="customer-save">Save</button>
+                        <button type="button" class="btn btn-primary px-4 py-2" id="customer-update">Update</button>
+                        <button type="button" class="btn btn-danger px-4 py-2" id="customer-delete">Delete</button>
+                        <button type="button" class="btn btn-secondary px-4 py-2" id="customer-reset">Reset</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="card border-0 shadow-lg p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-dark mb-0">Customer List</h5>
+                <input type="text" id="search-customer" class="form-control form-control-sm w-auto" placeholder="Search the Customer..">
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped mb-0 w-100" id="table-customer">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Customer ID</th>
+                        <th>Customer Name</th>
+                        <th>Address</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                    </tr>
+                    </thead>
+                    <tbody id="customer-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="product-content" class="py-5" style="display: none;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Manage Items</h2>
+        </div>
+
+        <div class="card border-0 shadow-lg p-4 mb-4">
+            <h4 class="mb-4 text-dark">Item Form</h4>
+            <form class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Item ID" id="itemId" readonly>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Item Name" id="itemName">
+                </div>
+                <div class="col-md-6">
+                    <input type="number" class="form-control" placeholder="Quantity" id="qty">
+                </div>
+                <div class="col-md-6">
+                    <input type="number" class="form-control" placeholder="Unit Price (LKR)" id="price">
+                </div>
+                <div class="col-12">
+                    <div class="d-flex justify-content-end gap-2 flex-wrap flex-md-nowrap">
+                        <button type="button" class="btn btn-success px-4 py-2" id="item-save">Save</button>
+                        <button type="button" class="btn btn-primary px-4 py-2" id="item-update">Update</button>
+                        <button type="button" class="btn btn-danger px-4 py-2" id="item-delete">Delete</button>
+                        <button type="button" class="btn btn-secondary px-4 py-2" id="item-reset">Reset</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="card border-0 shadow-lg p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-dark mb-0">Items List</h5>
+                <input type="text" id="search-item" class="form-control form-control-sm w-auto" placeholder="Search the Product..">
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped align-middle mb-0 w-100" id="item-table">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Item Id</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Unit Price (LKR)</th>
+                    </tr>
+                    </thead>
+                    <tbody id="item-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="order-content">
+    <div class="container mt-5">
+        <div class="mb-4 text-center">
+            <h2 class="fw-bold ">Manage Orders</h2>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100 d-flex flex-column">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0">Make Order</h4>
+                    </div>
+                    <div class="card-body">
+                        <form class="row g-3">
+                            <div class="col-12">
+                                <input type="text" class="form-control" placeholder="Order ID" id="order-id" readonly>
+                            </div>
+                            <div class="col-12">
+                                <select class="form-select" id="customer-dropdown">
+                                    <option selected disabled>Select Customer</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <select class="form-select" id="item-dropdown">
+                                    <option selected disabled>Select Item</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Available Qty</span>
+                                    <input type="number" class="form-control" id="available-qty" readonly>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <input type="number" class="form-control" placeholder="Buy Quantity" id="order-qty">
+                            </div>
+                            <div class="col-12 d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary w-100" id="add-cart">Add to Cart</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100 d-flex flex-column">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0">Make Payment</h4>
+                    </div>
+                    <div class="card-body">
+                        <form class="row g-3">
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Amount (LKR)</span>
+                                    <input type="number" class="form-control" placeholder="0.00" id="item-price" readonly>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Discount (%)</span>
+                                    <input type="number" class="form-control" placeholder="0" id="discount">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Discounted Price (LKR)</span>
+                                    <input type="number" class="form-control" id="discounted-price" readonly>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Cash (LKR)</span>
+                                    <input type="number" class="form-control" placeholder="0.00" id="cash">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Balance (LKR)</span>
+                                    <input type="number" class="form-control" placeholder="0.00" id="balance" readonly>
+                                </div>
+                            </div>
+                            <div class="col-12 d-flex justify-content-end">
+                                <button type="button" class="btn btn-success w-100" id="process-btn">Process</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm h-100 d-flex flex-column">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Cart</h4>
+                        <input type="text" id="search-order" class="form-control form-control-sm w-auto" placeholder="Search the order..">
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-hover mb-0 w-100" id="order-table">
+                                <thead class="table-light">
+                                <tr>
+                                    <th style="width: 20%;">Item</th>
+                                    <th style="width: 20%;">Quantity</th>
+                                    <th style="width: 20%;">Amount (LKR)</th>
+                                    <th style="width: 20%;">Date</th>
+                                    <th style="width: 20%;">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody id="order-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="history-content">
+    <div class="container mt-5">
+        <div class="mb-4 text-center">
+            <h2 class="fw-bold">Order History</h2>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 d-flex justify-content-center">
+                <div class="card p-4 shadow-lg w-100 rounded">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered mb-0">
+                            <thead class="bg-light">
+                            <tr>
+                                <th scope="col" style="width: 25%;">Order ID</th>
+                                <th scope="col" style="width: 25%;">Customer ID</th>
+                                <th scope="col" style="width: 25%;">Date</th>
+                                <th scope="col" style="width: 25%;">Total Amount (LKR)</th>
+                            </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col text-end">
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="controller/dashboardController.js"></script>
+<script type="module" src="controller/customerController.js"></script>
+<script type="module" src="controller/itemController.js"></script>
+<script type="module" src="controller/orderController.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+        $("#product-content").hide();
+        $("#customer-content").hide();
+        $("#history-content").hide();
+        $("#order-content").hide();
+        $("#dashboard-content").show();
+    });
+
+    $("#home-nav").click(function () {
+        $("#product-content").hide();
+        $("#customer-content").hide();
+        $("#history-content").hide();
+        $("#order-content").hide();
+        $("#dashboard-content").show();
+    });
+
+    $("#product-nav").click(function () {
+        $("#dashboard-content").hide();
+        $("#customer-content").hide();
+        $("#order-content").hide();
+        $("#history-content").hide();
+        $("#product-content").show();
+    });
+
+    $("#customer-nav").click(function () {
+        $("#dashboard-content").hide();
+        $("#product-content").hide();
+        $("#order-content").hide();
+        $("#history-content").hide();
+        $("#customer-content").show();
+    });
+
+    $("#order-nav").click(function () {
+        $("#dashboard-content").hide();
+        $("#product-content").hide();
+        $("#history-content").hide();
+        $("#customer-content").hide();
+        $("#order-content").show();
+    });
+
+    $("#history-nav").click(function () {
+        $("#dashboard-content").hide();
+        $("#product-content").hide();
+        $("#customer-content").hide();
+        $("#order-content").hide();
+        $("#history-content").show();
+    });
+
+</script>
+
+</body>
 </html>

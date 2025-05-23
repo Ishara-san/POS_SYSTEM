@@ -1,188 +1,258 @@
-import {item_db} from "../db/db.js";
-import { ItemModel } from '../model/ItemModel.js';
+import {customer_db, item_db} from "../db/db.js";
+import itemModel from "../model/itemModel.js";
+import { updateDashboard } from "./dashboardController.js";
 
-export class ItemController {
-    constructor() {
-        this.currentItemId = 1;
-    }
+let itemNameRegex = /^[A-Za-z0-9 .]+$/;
+let qtyRegex = /^([1-9][0-9]*|0)(\.[0-9]+)?$/;
+let priceRegex = /^\d+(\.\d{2})?$/;
 
-    async loadView() {
-        try {
-            const response = await fetch('../views/item.html');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const html = await response.text();
-            document.getElementById('main-content').innerHTML = html;
-            await this.loadItems();
-            this.setupEventListeners();
-        } catch (error) {
-            console.error('Error loading item view:', error);
-            alert('Error loading item view. Please try again.');
-        }
-    }
+$(document).ready(function () {
+    loadItemsId()
+    loadItems();
+    clear();
+});
 
-    setupEventListeners() {
-        const buttons = ['item-save', 'item-update', 'item-delete', 'item-reset'];
-        buttons.forEach(id => {
-            const button = document.getElementById(id);
-            if (button) {
-                const newButton = button.cloneNode(true);
-                button.parentNode.replaceChild(newButton, button);
-            }
-        });
+export function loadItems() {
+    $("#item-tbody").empty();
+    item_db.map((item) => {
+        let data = `<tr>
+            <td>${item.itemId}</td>
+            <td>${item.itemName}</td>
+            <td>${item.qty}</td>
+            <td>${item.price}</td>         
+        </tr>`;
+        $("#item-tbody").append(data);
+    });
+}
 
-        document.getElementById('item-save')?.addEventListener('click', () => this.saveItem());
-        document.getElementById('item-update')?.addEventListener('click', () => this.updateItem());
-        document.getElementById('item-delete')?.addEventListener('click', () => this.deleteItem());
-        document.getElementById('item-reset')?.addEventListener('click', () => this.resetForm());
-
-        const tbody = document.getElementById('item-tbody');
-        if (tbody) {
-            tbody.addEventListener('click', (e) => {
-                const row = e.target.closest('tr');
-                if (row) {
-                    const id = row.cells[0].textContent;
-                    const item = item_db.find(i => i.id.toString() === id);
-                    if (item) {
-                        this.selectItem(item);
-                    }
-                }
-            });
-        }
-    }
-
-    async saveItem() {
-        try {
-            const name = document.getElementById('item-name').value;
-            const price = parseFloat(document.getElementById('price').value);
-            const qty = parseInt(document.getElementById('qty').value);
-            const desc = document.getElementById('desc').value;
-
-            if (!name || isNaN(price) || isNaN(qty) || !desc) {
-                alert('Please fill in all fields with valid values');
-                return;
-            }
-
-            const item = new ItemModel(
-                this.currentItemId,
-                name,
-                price,
-                qty,
-                desc
-            );
-
-            item_db.push(item);
-            this.currentItemId++;
-            await this.loadItems();
-            this.resetForm();
-            alert('Item saved successfully!');
-        } catch (error) {
-            console.error('Error saving item:', error);
-            alert('Error saving item. Please try again.');
-        }
-    }
-
-    async updateItem() {
-        try {
-            const id = parseInt(document.getElementById('item-id').textContent);
-            if (!id) {
-                alert('Please select an item to update');
-                return;
-            }
-
-            const index = item_db.findIndex(i => i.id === id);
-            if (index === -1) {
-                alert('Item not found');
-                return;
-            }
-
-            const item = new ItemModel(
-                id,
-                document.getElementById('item-name').value,
-                parseFloat(document.getElementById('price').value),
-                parseInt(document.getElementById('qty').value),
-                document.getElementById('desc').value
-            );
-
-            item_db[index] = item;
-            await this.loadItems();
-            this.resetForm();
-            alert('Item updated successfully!');
-        } catch (error) {
-            console.error('Error updating item:', error);
-            alert('Error updating item. Please try again.');
-        }
-    }
-
-    async deleteItem() {
-        try {
-            const id = parseInt(document.getElementById('item-id').textContent);
-            if (!id) {
-                alert('Please select an item to delete');
-                return;
-            }
-
-            const index = item_db.findIndex(i => i.id === id);
-            if (index === -1) {
-                alert('Item not found');
-                return;
-            }
-
-            if (confirm('Are you sure you want to delete this item?')) {
-                item_db.splice(index, 1);
-                await this.loadItems();
-                this.resetForm();
-                alert('Item deleted successfully!');
-            }
-        } catch (error) {
-            console.error('Error deleting item:', error);
-            alert('Error deleting item. Please try again.');
-        }
-    }
-
-    async loadItems() {
-        try {
-            const tbody = document.getElementById('item-tbody');
-            if (!tbody) return;
-
-            tbody.innerHTML = '';
-            item_db.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.id}</td>
-                    <td>${item.name}</td>
-                    <td>${item.price}</td>
-                    <td>${item.qty}</td>
-                    <td>${item.desc}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        } catch (error) {
-            console.error('Error loading items:', error);
-            alert('Error loading items. Please try again.');
-        }
-    }
-
-    selectItem(item) {
-        document.getElementById('item-id').textContent = item.id;
-        document.getElementById('item-name').value = item.name;
-        document.getElementById('price').value = item.price;
-        document.getElementById('qty').value = item.qty;
-        document.getElementById('desc').value = item.desc;
-    }
-
-    resetForm() {
-        document.getElementById('item-id').textContent = '';
-        document.getElementById('item-name').value = '';
-        document.getElementById('price').value = '';
-        document.getElementById('qty').value = '';
-        document.getElementById('desc').value = '';
-    }
-
-    async getTotalItems() {
-        return item_db.length;
-    }
+function nextId() {
+    if (item_db.length === 0) return "ITM001";
+    let lastItemId = item_db[item_db.length - 1].itemId;
+    let numberPart = Number(lastItemId.slice(3));
+    let nextNumber = numberPart + 1;
+    let formattedNumber = String(nextNumber).padStart(3, '0');
+    return "ITM" + formattedNumber;
 }
 
 
+$("#search-item").on("input", function () {
+    let text = $(this).val();
+
+    $("#item-table tr").each(function () {
+        let search = $(this).text();
+
+        if (search.includes(text)) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
+});
+
+export function loadItemsId() {
+    $('#item-dropdown').empty();
+    $('#item-dropdown').append($('<option>', {
+        value: '',
+        text: 'Select item ID'
+    }));
+    item_db.forEach(item => {
+        $('#item-dropdown').append(
+            $('<option>', {
+                value: item.itemId,
+                text: item.itemId
+            })
+        );
+    });
+}
+
+export function clear() {
+    $("#itemId").val(nextId());
+    $("#itemName").val("");
+    $("#qty").val("");
+    $("#price").val("");
+}
+
+$("#item-save").click(function () {
+    let itemId = nextId();
+    let itemName = $("#itemName").val();
+    let qty = $("#qty").val();
+    let price = $("#price").val();
+
+    if (itemName === '' || qty === '' || price === '') {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Invalid Inputs',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    if (!itemNameRegex.test(itemName)) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Item name not correct',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    if (!qtyRegex.test(qty)) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Quantity not correct',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    if (!priceRegex.test(price)) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Price not correct',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    let itemData = new itemModel(itemId, itemName, qty, price);
+    item_db.push(itemData);
+    loadItems();
+    loadItemsId()
+    updateDashboard();
+    clear();
+
+    Swal.fire({
+        title: "Added Successfully!",
+        icon: "success"
+    });
+});
+
+$("#item-reset").click(function () {
+    clear();
+});
+
+$("#item-tbody").on('click', 'tr', function () {
+    let index = $(this).index();
+    let item = item_db[index];
+
+    $("#itemId").val(item.itemId);
+    $("#itemName").val(item.itemName);
+    $("#qty").val(item.qty);
+    $("#price").val(item.price);
+});
+
+$("#item-update").click(function () {
+    let itemId = $("#itemId").val();
+    let itemName = $("#itemName").val();
+    let qty = $("#qty").val();
+    let price = $("#price").val();
+
+    if (itemName === '' || qty === '' || price === '') {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Invalid Inputs',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    let index = item_db.findIndex(item => item.itemId == itemId);
+
+    if (index === -1) {
+        Swal.fire({
+            title: "Error",
+            text: "Item not found to update",
+            icon: "error"
+        });
+        return;
+    }
+
+    if (!itemNameRegex.test(itemName)) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Item name not correct',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    if (!qtyRegex.test(qty)) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Quantity not correct',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    if (!priceRegex.test(price)) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Price not correct',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    item_db[index] = new itemModel(itemId, itemName, qty, price);
+    loadItems();
+    updateDashboard();
+    clear()
+
+    Swal.fire({
+        title: "Update success!",
+        icon: "success"
+    });
+});
+
+$("#item-delete").click(function () {
+    let itemId = $("#itemId").val();
+    let itemName = $("#itemName").val();
+    let qty = $("#qty").val();
+    let price = $("#price").val();
+
+    if (itemName === '' || qty === '' || price === '') {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Invalid Inputs',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+        return;
+    }
+
+    let index = item_db.findIndex(item => item.itemId == itemId);
+
+    if (index === -1) {
+        Swal.fire({
+            title: "Error",
+            text: "Item not found to delete",
+            icon: "error"
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'This item will be removed!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!'
+    }).then(result => {
+        if (result.isConfirmed) {
+            item_db.splice(index, 1);
+            loadItems();
+            clear();
+            loadItemsId()
+            updateDashboard();
+        }
+    });
+});
